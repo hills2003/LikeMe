@@ -1,9 +1,11 @@
 
-import React,{useState} from 'react';
+import React,{useEffect, useState} from 'react';
 import CardItem from "./CardItem";
 import profile from "./assets/profile.png";
 import {makeStyles} from "@material-ui/core/styles";
 import purple from '@material-ui/core/colors/purple';
+import {useAuth} from "./Auth/AuthProvider";
+import firebase from "./Auth/Firebase";
 
 const useStyles=makeStyles((theme) =>({
   div:{
@@ -13,18 +15,28 @@ const useStyles=makeStyles((theme) =>({
 }))
 
 function Cards(props) {
+  const {activeUser} =useAuth();
   const classes =useStyles();
-    
+    const name  = activeUser.displayName;
+    const photo =activeUser.photoURL;
     const [info,setInfo] =useState([
-        {id:1,title:'new post',text:" i love candy i love candy i love candy i love candy i love candy ",subheader:'posted on',avatar:'H',img:profile},
-        {id:2,title:'new post',text:" i love candy i love candy i love candy i love candy i love candy ",subheader:'posted on',avatar:'H',img:profile},
-        {id:3,title:'new post',subheader:'posted on',avatar:'H',img:profile,text:" i love candy i love candy i love candy i love candy i love candy "},
-        {id:4,title:'new post',subheader:'posted on',avatar:'H',img:profile,text:" i love candy i love candy i love candy i love candy i love candy "}
+         
     ])
+    useEffect(()=>{
+      firebase.database().ref("information").on('value',(snapshot)=>{
+        const arrs = [];
+        snapshot.forEach(snap => {
+          arrs.push(snap.val());
+          setInfo(arrs)
+        })
+      })
+    },[])
+    
+
     return (
         <div >
             <div className={classes.div}></div>
-            {info.map(piece => ( <CardItem key={piece.id} piece={piece} />))}
+            {info.length > 0 ? info.map(piece => ( <CardItem key={piece.id} piece={piece} />)) : ""}
         </div>
     );
 }
